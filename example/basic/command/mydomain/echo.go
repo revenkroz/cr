@@ -27,8 +27,17 @@ func (h *Echo) Handler() runner.HandlerFunc {
 }
 
 func (h *Echo) Echo(ctx runner.Context, args *EchoArgs) (*EchoResponse, error) {
-	if args.B == 0 {
+	if args.A == 0 {
 		return nil, errors.New("echo zero")
+	}
+
+	if args.B == 0 {
+		return nil, runner.NewValidationError([]runner.Violation{
+			{
+				Field: "B",
+				Error: "B cannot be zero",
+			},
+		})
 	}
 
 	quo := &EchoResponse{

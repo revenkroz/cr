@@ -2,6 +2,7 @@ package runner
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -39,6 +40,10 @@ func H[CommandParams any, CommandResponse any](handler func(Context, *CommandPar
 
 		resp, err := handler(ctx, params)
 		if err != nil {
+			if errors.As(err, &Error{}) {
+				return nil, err
+			}
+
 			return nil, NewOtherError(err.Error())
 		}
 

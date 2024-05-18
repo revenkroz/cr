@@ -34,7 +34,6 @@ func main() {
 
 	// JSON params, good data
 	mappedRequest := &runner.Command{
-		ID:     0,
 		Name:   "MyDomain.Echo",
 		Params: json.RawMessage(`{"a": 1, "b": 2}`),
 	}
@@ -44,9 +43,15 @@ func main() {
 		Name:   "MyDomain.Echo",
 		Params: json.RawMessage(`{"test": 1}`),
 	}
-	// mapped params
+	// JSON params, b is 0
 	mappedRequest3 := &runner.Command{
-		ID:   1,
+		ID:     2,
+		Name:   "MyDomain.Echo",
+		Params: json.RawMessage(`{"a": 1, "b": 0}`),
+	}
+	// mapped params
+	mappedRequest4 := &runner.Command{
+		ID:   3,
 		Name: "MyDomain.Echo",
 		Params: map[string]interface{}{
 			"A": 4,
@@ -58,6 +63,7 @@ func main() {
 		mappedRequest,
 		mappedRequest2,
 		mappedRequest3,
+		mappedRequest4,
 	}
 
 	resp := runnerService.Run(runner.NewContext(), commands, true)
