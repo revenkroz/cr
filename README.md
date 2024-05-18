@@ -9,6 +9,12 @@ CR is a simple and extensible command runner for Go that allows you to run comma
 - 👌 You can use validators for your commands
 - 📩 Stamps to pass any data from middleware to command
 
+## Installation
+
+```bash
+go get -u github.com/revenkroz/cr
+```
+
 ## Usage
 
 See the [examples](./example) for more information.
