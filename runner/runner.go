@@ -31,6 +31,12 @@ func (r *Runner) Use(opts ...Option) {
 	}
 }
 
+func (r *Runner) MustRegister(handler CommandHandler) {
+	if err := r.Register(handler); err != nil {
+		panic(err)
+	}
+}
+
 func (r *Runner) Register(handler CommandHandler) error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
