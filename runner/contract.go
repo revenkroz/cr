@@ -16,7 +16,7 @@ type Command struct {
 type Result struct {
 	ID     int         `json:"id,omitempty"`
 	Result interface{} `json:"result,omitempty"`
-	Error  error       `json:"error,omitempty"`
+	Error  *Error      `json:"error,omitempty"`
 }
 
 func ResultResponse(id int, resp interface{}) *Result {
@@ -26,9 +26,9 @@ func ResultResponse(id int, resp interface{}) *Result {
 	}
 }
 
-func ErrorResponse(id int, err error) *Result {
+func ErrorResponse(id int, err Error) *Result {
 	return &Result{
-		Error: err,
+		Error: &err,
 		ID:    id,
 	}
 }

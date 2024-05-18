@@ -56,6 +56,10 @@ func N[CommandResponse any](handler func(Context) (CommandResponse, error)) Hand
 	return func(ctx Context, in interface{}) (interface{}, error) {
 		resp, err := handler(ctx)
 		if err != nil {
+			if errors.As(err, &Error{}) {
+				return nil, err
+			}
+
 			return nil, NewOtherError(err.Error())
 		}
 

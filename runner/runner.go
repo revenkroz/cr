@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -144,7 +145,11 @@ func (r *Runner) callMethodMiddleware(ctx Context, cmd *Command) *Result {
 	if err != nil {
 		r.logger.Logf("execution error: %v", err)
 
-		return ErrorResponse(cmd.ID, err)
+		if errors.As(err, &Error{}) {
+			return ErrorResponse(cmd.ID, err.(Error))
+		}
+
+		return ErrorResponse(cmd.ID, NewOtherError(err.Error()))
 	}
 
 	return ResultResponse(cmd.ID, resp)
