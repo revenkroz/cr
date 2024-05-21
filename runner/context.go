@@ -32,9 +32,7 @@ func (c *Context) GetStamp(name string) *Stamp {
 }
 
 func (c *Context) HasStamp(name string) bool {
-	_, ok := c.Stamps[name]
-
-	return ok
+	return c.GetStamp(name) != nil
 }
 
 func (c *Context) SetValidator(validator Validator) {
