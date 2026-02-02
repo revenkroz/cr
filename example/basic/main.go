@@ -2,11 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/revenkroz/cr/example/basic/command/mydomain"
-	"github.com/revenkroz/cr/middleware"
-	"github.com/revenkroz/cr/runner"
 	"log"
 	"os"
+
+	"github.com/revenkroz/cr"
+	"github.com/revenkroz/cr/example/basic/command/mydomain"
+	"github.com/revenkroz/cr/middleware"
 )
 
 type Logger struct {
@@ -22,57 +23,47 @@ func main() {
 		logger: log.New(os.Stderr, "", log.LUTC),
 	}
 
-	runnerService := runner.New(
-		runner.WithLogger(logger),
-		runner.WithMiddleware(middleware.Logger(runner.NewStdLogger())),
+	r := cr.New(
+		cr.WithLogger(logger),
+		cr.WithMiddleware(middleware.Logger(cr.NewStdLogger())),
 	)
 	// Register handler
-	err := runnerService.Register(&mydomain.Echo{})
+	err := r.Register(&mydomain.Echo{})
 	if err != nil {
 		log.Fatalf("error: %s", err.Error())
 	}
 
 	// JSON params, good data
-	mappedRequest := &runner.Command{
+	mappedRequest := &cr.Command{
 		Name:   "MyDomain.Echo",
 		Params: json.RawMessage(`{"a": 1, "b": 2}`),
 	}
 	// JSON params, bad data
-	mappedRequest2 := &runner.Command{
+	mappedRequest2 := &cr.Command{
 		ID:     1,
 		Name:   "MyDomain.Echo",
 		Params: json.RawMessage(`{"test": 1}`),
 	}
 	// JSON params, b is 0
-	mappedRequest3 := &runner.Command{
+	mappedRequest3 := &cr.Command{
 		ID:     2,
 		Name:   "MyDomain.Echo",
 		Params: json.RawMessage(`{"a": 1, "b": 0}`),
 	}
-	// mapped params
-	mappedRequest4 := &runner.Command{
-		ID:   3,
-		Name: "MyDomain.Echo",
-		Params: map[string]interface{}{
-			"A": 4,
-			"B": 8,
-		},
-	}
 
-	commands := []*runner.Command{
+	commands := []*cr.Command{
 		mappedRequest,
 		mappedRequest2,
 		mappedRequest3,
-		mappedRequest4,
 	}
 
-	resp := runnerService.Run(runner.NewContext(), commands, true)
+	resp := r.Run(cr.NewContext(), commands, true)
 
-	for _, r := range resp {
-		if r.Error != nil {
-			log.Printf("error: %s", r.Error.Error())
+	for _, res := range resp {
+		if res.Error != nil {
+			log.Printf("error: %s", res.Error.Error())
 		} else {
-			log.Printf("result: %+v", r.Result)
+			log.Printf("result: %+v", res.Result)
 		}
 	}
 }

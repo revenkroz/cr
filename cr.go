@@ -1,4 +1,4 @@
-package runner
+package cr
 
 import (
 	"errors"
@@ -8,22 +8,21 @@ import (
 )
 
 type Runner struct {
-	logger      Logger
-	lock        Lock
-	handlers    map[string]CommandHandler
+	mu         sync.RWMutex
+	logger     Logger
+	handlers   map[string]CommandHandler
 	middlewares []Middleware
 }
 
 func New(opts ...Option) *Runner {
-	s := &Runner{
+	r := &Runner{
 		logger:   NewVoidLogger(),
-		lock:     NewMutexLock(),
 		handlers: map[string]CommandHandler{},
 	}
 
-	s.Use(opts...)
+	r.Use(opts...)
 
-	return s
+	return r
 }
 
 func (r *Runner) Use(opts ...Option) {
@@ -39,8 +38,8 @@ func (r *Runner) MustRegister(handler CommandHandler) {
 }
 
 func (r *Runner) Register(handler CommandHandler) error {
-	r.lock.Lock()
-	defer r.lock.Unlock()
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
 	r.logger.Logf("Register method %s", handler.Name())
 	if _, ok := r.handlers[strings.ToLower(handler.Name())]; ok {
@@ -64,16 +63,16 @@ func (r *Runner) RegisterMany(handlers []CommandHandler) error {
 }
 
 func (r *Runner) Has(name string) bool {
-	r.lock.ReadLock()
-	defer r.lock.ReadUnlock()
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	_, ok := r.handlers[strings.ToLower(name)]
 
 	return ok
 }
 
 func (r *Runner) Get(name string) CommandHandler {
-	r.lock.ReadLock()
-	defer r.lock.ReadUnlock()
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	h, ok := r.handlers[strings.ToLower(name)]
 	if !ok {
 		return nil
@@ -98,9 +97,7 @@ func (r *Runner) Run(
 	ctx Context,
 	commands []*Command,
 	parallel bool,
-) (resp []*Result) {
-	wg := sync.WaitGroup{}
-
+) []*Result {
 	exec := func(req *Command) *Result {
 		h := func(ctx Context, req *Command) *Result {
 			return r.callMethodMiddleware(ctx, req)
@@ -112,27 +109,26 @@ func (r *Runner) Run(
 		return h(ctx, req)
 	}
 
+	resp := make([]*Result, len(commands))
+
 	if parallel {
+		wg := sync.WaitGroup{}
 		wg.Add(len(commands))
-		for _, req := range commands {
-			cmd := req
-
-			go func(cmd *Command) {
+		for i, req := range commands {
+			i, cmd := i, req
+			go func() {
 				defer wg.Done()
-				resp = append(resp, exec(cmd))
-			}(cmd)
+				resp[i] = exec(cmd)
+			}()
 		}
-	} else {
-		for _, req := range commands {
-			resp = append(resp, exec(req))
-		}
-	}
-
-	if parallel {
 		wg.Wait()
+	} else {
+		for i, req := range commands {
+			resp[i] = exec(req)
+		}
 	}
 
-	return
+	return resp
 }
 
 func (r *Runner) callMethodMiddleware(ctx Context, cmd *Command) *Result {

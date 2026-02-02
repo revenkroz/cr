@@ -1,4 +1,6 @@
-package runner
+package cr
+
+import "encoding/json"
 
 type HandlerFunc func(Context, interface{}) (interface{}, error)
 
@@ -8,9 +10,9 @@ type CommandHandler interface {
 }
 
 type Command struct {
-	ID     int         `json:"id"`
-	Name   string      `json:"name"`
-	Params interface{} `json:"params"`
+	ID     int              `json:"id"`
+	Name   string           `json:"name"`
+	Params json.RawMessage  `json:"params"`
 }
 
 type Result struct {

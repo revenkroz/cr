@@ -2,7 +2,7 @@ package mydomain
 
 import (
 	"errors"
-	"github.com/revenkroz/cr/runner"
+	"github.com/revenkroz/cr"
 )
 
 type EchoArgs struct {
@@ -22,17 +22,17 @@ func (h *Echo) Name() string {
 	return "MyDomain.Echo"
 }
 
-func (h *Echo) Handler() runner.HandlerFunc {
-	return runner.H(h.Echo)
+func (h *Echo) Handler() cr.HandlerFunc {
+	return cr.H(h.Echo)
 }
 
-func (h *Echo) Echo(ctx runner.Context, args *EchoArgs) (*EchoResponse, error) {
+func (h *Echo) Echo(ctx cr.Context, args *EchoArgs) (*EchoResponse, error) {
 	if args.A == 0 {
 		return nil, errors.New("echo zero")
 	}
 
 	if args.B == 0 {
-		return nil, runner.NewValidationError([]runner.Violation{
+		return nil, cr.NewValidationError([]cr.Violation{
 			{
 				Field: "B",
 				Error: "B cannot be zero",

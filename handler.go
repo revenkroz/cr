@@ -1,30 +1,17 @@
-package runner
+package cr
 
 import (
 	"encoding/json"
 	"errors"
-	"github.com/mitchellh/mapstructure"
 )
 
-// H is a helper function to create a HandlerFunc from a handler function
+// H is a helper function to create a HandlerFunc from a handler function.
 func H[CommandParams any, CommandResponse any](handler func(Context, *CommandParams) (CommandResponse, error)) HandlerFunc {
 	return func(ctx Context, in interface{}) (interface{}, error) {
 		var params *CommandParams
 		switch v := in.(type) {
 		case *CommandParams:
 			params = v
-		case map[string]interface{}:
-			decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-				WeaklyTypedInput: true,
-				Result:           &params,
-			})
-			if err != nil {
-				return nil, NewParseError()
-			}
-
-			if err := decoder.Decode(v); err != nil {
-				return nil, NewParseError()
-			}
 		case json.RawMessage:
 			if err := json.Unmarshal(v, &params); err != nil {
 				return nil, NewParseError()
@@ -51,7 +38,7 @@ func H[CommandParams any, CommandResponse any](handler func(Context, *CommandPar
 	}
 }
 
-// N is a helper function to create a HandlerFunc from a handler function that does not require any parameters
+// N is a helper function to create a HandlerFunc from a handler function that does not require any parameters.
 func N[CommandResponse any](handler func(Context) (CommandResponse, error)) HandlerFunc {
 	return func(ctx Context, in interface{}) (interface{}, error) {
 		resp, err := handler(ctx)
