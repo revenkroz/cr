@@ -14,7 +14,7 @@ CR is a simple and extensible command runner for Go that allows you to run comma
 ## Installation
 
 ```bash
-go get -u github.com/revenkroz/cr
+go get -u github.com/revenkroz/cr/v2
 ```
 
 ## Usage
@@ -25,8 +25,8 @@ See the [examples](./example) for more information.
 
 ```go
 import (
-    "github.com/revenkroz/cr"
-    "github.com/revenkroz/cr/middleware"
+    "github.com/revenkroz/cr/v2"
+    "github.com/revenkroz/cr/v2/middleware"
 )
 
 r := cr.New(
@@ -41,7 +41,7 @@ r := cr.New(
 package mydomain
 
 import (
-    "github.com/revenkroz/cr"
+    "github.com/revenkroz/cr/v2"
 )
 
 type EchoArgs struct {

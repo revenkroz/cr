@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/revenkroz/cr"
-	"github.com/revenkroz/cr/example/basic/command/mydomain"
-	"github.com/revenkroz/cr/middleware"
+	"github.com/revenkroz/cr/v2"
+	"github.com/revenkroz/cr/v2/example/basic/command/mydomain"
+	"github.com/revenkroz/cr/v2/middleware"
 )
 
 type Logger struct {
