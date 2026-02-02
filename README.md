@@ -4,10 +4,12 @@ CR is a simple and extensible command runner for Go that allows you to run comma
 
 ## Features
 
-- ✨ Easy to use, almost dependency-free
-- 📦 Ability to use middlewares for your commands
-- 👌 You can use validators for your commands
-- 📩 Stamps to pass any data from middleware to command
+- Zero dependencies
+- Middleware support
+- Context validators
+- Stamps to pass data from middleware to command
+- Parallel command execution
+- Type-safe generic helpers
 
 ## Installation
 
@@ -21,38 +23,16 @@ See the [examples](./example) for more information.
 
 ### 1. Create runner
 
-We will use `github.com/rs/zerolog/log` as logger.
-
 ```go
-package runner
-
 import (
-	"github.com/revenkroz/cr/runner"
-	"github.com/rs/zerolog/log"
+    "github.com/revenkroz/cr"
+    "github.com/revenkroz/cr/middleware"
 )
 
-type Logger struct {
-}
-
-func (l *Logger) Logf(format string, args ...interface{}) {
-	log.Info().Msgf(format, args...)
-}
-
-func CreateLogger() *Logger {
-	return &Logger{}
-}
-
-type Runner struct {
-	*runner.Runner
-}
-
-func NewRunner() *Runner {
-	return &Runner{
-		Runner: runner.New(
-			runner.WithLogger(CreateLogger()),
-		),
-	}
-}
+r := cr.New(
+    cr.WithLogger(cr.NewStdLogger()),
+    cr.WithMiddleware(middleware.Logger(cr.NewStdLogger())),
+)
 ```
 
 ### 2. Create command
@@ -61,52 +41,54 @@ func NewRunner() *Runner {
 package mydomain
 
 import (
-	"errors"
-	"github.com/revenkroz/cr/runner"
+    "github.com/revenkroz/cr"
 )
 
 type EchoArgs struct {
-	A int `json:"a"`
+    A int `json:"a"`
 }
 
 type EchoResponse struct {
-	C int `json:"c"`
+    C int `json:"c"`
 }
 
-type Echo struct {
-}
+type Echo struct{}
 
 func (h *Echo) Name() string {
-	return "MyDomain.Echo"
+    return "MyDomain.Echo"
 }
 
-func (h *Echo) Handler() runner.HandlerFunc {
-	return runner.H(h.Echo)
+func (h *Echo) Handler() cr.HandlerFunc {
+    return cr.H(h.Echo)
 }
 
-func (h *Echo) Echo(ctx runner.Context, args *EchoArgs) (*EchoResponse, error) {
-	quo := &EchoResponse{
-		C: args.A * 2,
-	}
-
-	return quo, nil
+func (h *Echo) Echo(ctx cr.Context, args *EchoArgs) (*EchoResponse, error) {
+    return &EchoResponse{C: args.A * 2}, nil
 }
 ```
 
 ### 3. Register command
 
 ```go
-// runnerService := NewRunner()
-runnerService.Register(&mydomain.Echo{})
+r.MustRegister(&mydomain.Echo{})
 ```
 
 ### 4. Run
 
 ```go
-result := runnerService.RunOne(runner.NewContext(), &runner.Command{
-    Name: "MyDomain.Echo",
-    Params: map[string]interface{}{
-        "A": 4,
-    },
+result := r.RunOne(cr.NewContext(), &cr.Command{
+    Name:   "MyDomain.Echo",
+    Params: json.RawMessage(`{"a": 4}`),
 })
+```
+
+### Parallel execution
+
+```go
+commands := []*cr.Command{
+    {Name: "MyDomain.Echo", Params: json.RawMessage(`{"a": 1}`)},
+    {Name: "MyDomain.Echo", Params: json.RawMessage(`{"a": 2}`)},
+}
+
+results := r.Run(cr.NewContext(), commands, true)
 ```

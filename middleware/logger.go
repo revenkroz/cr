@@ -1,13 +1,13 @@
 package middleware
 
 import (
-	"github.com/revenkroz/cr/runner"
+	"github.com/revenkroz/cr"
 	"time"
 )
 
-func Logger(logger runner.Logger) runner.Middleware {
-	return func(handler runner.MiddlewareFunc) runner.MiddlewareFunc {
-		return func(ctx runner.Context, cmd *runner.Command) *runner.Result {
+func Logger(logger cr.Logger) cr.Middleware {
+	return func(handler cr.MiddlewareFunc) cr.MiddlewareFunc {
+		return func(ctx cr.Context, cmd *cr.Command) *cr.Result {
 			t1 := time.Now().UnixMicro()
 			resp := handler(ctx, cmd)
 			t2 := time.Now().UnixMicro()
