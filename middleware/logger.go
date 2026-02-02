@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/revenkroz/cr"
+	"github.com/revenkroz/cr/v2"
 	"time"
 )
 

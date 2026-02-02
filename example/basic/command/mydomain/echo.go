@@ -2,7 +2,7 @@ package mydomain
 
 import (
 	"errors"
-	"github.com/revenkroz/cr"
+	"github.com/revenkroz/cr/v2"
 )
 
 type EchoArgs struct {
